@@ -1,0 +1,137 @@
+// Prisma Schema for SkipQ Queue Assistance Platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  ASSISTANT
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ServiceCategoryType {
+  QUEUE_ASSISTANCE
+  STORE_PICKUP
+  SERVICE_CENTER
+  ERRAND_ASSISTANCE
+}
+
+model User {
+  id            String            @id @default(cuid())
+  email         String            @unique
+  name          String
+  phone         String?
+  role          Role              @default(CUSTOMER)
+  passwordHash  String?
+  avatarUrl     String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  
+  bookings      Booking[]         @relation("CustomerBookings")
+  assistant     AssistantProfile?
+  notifications Notification[]
+
+  @@map("users")
+}
+
+model AssistantProfile {
+  id              String        @id @default(cuid())
+  userId          String        @unique
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  isAvailable     Boolean       @default(true)
+  isVerified      Boolean       @default(true)
+  rating          Float         @default(4.9)
+  completedTasks  Int           @default(0)
+  totalEarnings   Float         @default(0.0)
+  serviceArea     String        @default("Bhimavaram Central")
+  bio             String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  assignedBookings Booking[]    @relation("AssistantAssignments")
+
+  @@map("assistant_profiles")
+}
+
+model ServiceCategory {
+  id                   String              @id @default(cuid())
+  type                 ServiceCategoryType @unique
+  name                 String
+  description          String
+  baseFee              Float
+  icon                 String
+  estimatedWaitMinutes Int                 @default(30)
+  popularLocations     String[]            @default([])
+  isActive             Boolean             @default(true)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  
+  bookings             Booking[]
+
+  @@map("service_categories")
+}
+
+model Booking {
+  id                 String                @id @default(cuid())
+  bookingNumber      String                @unique
+  customerId         String
+  customer           User                  @relation("CustomerBookings", fields: [customerId], references: [id])
+  assistantId        String?
+  assistant          AssistantProfile?     @relation("AssistantAssignments", fields: [assistantId], references: [id])
+  categoryId         String
+  category           ServiceCategory       @relation(fields: [categoryId], references: [id])
+  
+  serviceLocation    String
+  destination        String?
+  targetTime         DateTime
+  notes              String?
+  status             BookingStatus         @default(PENDING)
+  estimatedWaitMins  Int                   @default(30)
+  timeSavedMins      Int                   @default(0)
+  serviceFee         Float                 @default(49.0)
+  
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  
+  statusHistory      BookingStatusHistory[]
+
+  @@map("bookings")
+}
+
+model BookingStatusHistory {
+  id         String        @id @default(cuid())
+  bookingId  String
+  booking    Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  status     BookingStatus
+  note       String?
+  updatedBy  String?
+  timestamp  DateTime      @default(now())
+
+  @@map("booking_status_histories")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  linkUrl   String?
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+}
