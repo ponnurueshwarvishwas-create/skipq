@@ -1,7 +1,7 @@
 # SkipQ — Full-Stack 3D Queue Assistance Platform
 
 <p align="center">
-  <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1200&auto=format&fit=crop&q=80" alt="SkipQ Platform Banner" width="100%" style="border-radius: 12px; max-height: 380px; object-fit: cover;" />
+  <img src="public/skipq-banner.jpg" alt="SkipQ 3D Queue Platform Banner" width="100%" style="border-radius: 12px; object-fit: cover;" />
 </p>
 
 <p align="center">
